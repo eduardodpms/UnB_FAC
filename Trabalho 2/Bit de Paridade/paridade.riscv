@@ -1,0 +1,89 @@
+    .data
+msg_invalida: .ascii "entrada incorreta \0"
+msg_bit_paridade: .ascii "bit-paridade: \0"
+msg_saida: .ascii "saida: \0"
+
+    .text
+    .globl main
+
+main:
+    # Leitura do número N
+    li a7, 5           # syscall para leitura de inteiro
+    ecall
+    
+    mv t0, a0          # t0 = N
+
+    # Verificar se N está fora do intervalo [0, 127]
+    li t1, 0           # t1 = 0
+    blt t0, t1, entrada_invalida # Se N < 0, vai para entrada_invalida
+
+    li t1, 128         # t1 = 128
+    bge t0, t1, entrada_invalida # Se N >= 128, vai para entrada_invalida
+
+    # Calcular o número de bits 1 em N
+    li t1, 0           # t1 = contador de bits 1
+    li t2, 1           # t2 = 1 (máscara para verificar bit)
+
+conta_bits:
+    and t3, t0, t2     # Verifica se o bit menos significativo é 1
+    beqz t3, proximo_bit
+    addi t1, t1, 1     # Incrementa contador de bits 1
+
+proximo_bit:
+    srli t0, t0, 1     # Desloca N para a direita
+    bnez t0, conta_bits
+
+    # Determinar o bit de paridade (paridade par)
+    andi t3, t1, 1     # Verifica se o número de bits 1 é ímpar
+    snez t3, t3        # t3 = 1 se número de bits 1 é ímpar, 0 se for par
+
+    # Calcular a saída final
+    mv t4, a0          # t4 = N original
+    slli t3, t3, 7     # Desloca o bit de paridade para o MSB
+    or t4, t4, t3      # Adiciona o bit de paridade ao número original
+
+    # Exibir resultados
+    la a0, msg_bit_paridade
+    li a7, 4           # syscall para imprimir string
+    ecall
+
+    srli t5, t3, 7     # Recupera o bit de paridade
+    mv a0, t5          # Carrega o bit de paridade (0 ou 1)
+    li a7, 1           # syscall para imprimir inteiro
+    ecall
+
+    # Nova linha
+    li a0, 10
+    li a7, 11          # syscall para imprimir caractere
+    ecall
+
+    la a0, msg_saida
+    li a7, 4           # syscall para imprimir string
+    ecall
+
+    mv a0, t4          # Carrega o número de saída
+    li a7, 1           # syscall para imprimir inteiro
+    ecall
+
+    # Nova linha
+    li a0, 10
+    li a7, 11          # syscall para imprimir caractere
+    ecall
+
+    j fim
+
+entrada_invalida:
+    # Exibir mensagem de entrada inválida
+    la a0, msg_invalida
+    li a7, 4           # syscall para imprimir string
+    ecall
+
+    # Nova linha
+    li a0, 10
+    li a7, 11          # syscall para imprimir caractere
+    ecall
+
+fim:
+    # Encerrar programa
+    li a7, 10          # syscall para encerrar programa
+    ecall

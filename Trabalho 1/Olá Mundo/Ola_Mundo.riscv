@@ -1,0 +1,17 @@
+    .data                   # Seção de dados
+msg:    .asciz "Ola Mundo\r\n"  # String a ser impressa
+
+    .text                   # Seção de código
+    .globl  _start          # Define o ponto de entrada
+
+_start:
+    # Prepara os argumentos para a syscall write
+    la      a0, msg         # Carrega o endereço da string na memória para a0
+    li      a1, 11          # Tamanho da string ("Ola Mundo!\r\n" tem 11 caracteres)
+    li      a7, 4           # Código da syscall write (em RARS é 4)
+
+    ecall                   # Chama o sistema (syscall)
+
+    # Finaliza o programa
+    li      a7, 10          # Código da syscall exit (em RARS é 10)
+    ecall                   # Chama o sistema (syscall)

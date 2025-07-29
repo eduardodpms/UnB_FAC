@@ -1,0 +1,50 @@
+.data
+buffer: .space 34      # Espaço pra 32 caracteres + '\n' + '\0'
+hex_digits: .asciz "0123456789abcdef"  # Tabela para conversão de hex para ASCII
+
+.text
+.globl main
+
+main:
+    # Leitura da string
+    li a7, 8          # Código da syscall para ler string
+    la a0, buffer     # Endereço do buffer
+    li a1, 34         # Tamanho máximo (32 + '\n' + '\0')
+    ecall             # Chama a syscall
+
+    la t0, buffer     # Endereço do buffer
+
+loop:
+    lb t1, 0(t0)      # Carrega um byte (caracter) da string
+    li t2, 0x0A       # ASCII de '\n'
+    beq t1, t2, end   # Se for '\n', termina
+
+    # Converter o caractere para hexa
+    srli t3, t1, 4    # Pega o nibble alto e coloca em t3
+    andi t4, t1, 0xF  # Pega o nibble baixo e coloca em t4
+    
+    la t5, hex_digits # Carrega a tabela de conversão
+    
+    # Imprimir nibble alto
+    add t3, t3, t5    # Aponta para o caractere correto
+    lbu a0, 0(t3)     # Carrega o caracter correspondente
+    li a7, 11         # Código da syscall para imprimir caracter
+    ecall             # Imprime o primeiro nibble
+
+    # Imprimir nibble baixo
+    add t4, t4, t5    # Aponta para o caracter correto
+    lbu a0, 0(t4)     # Carrega o caractere correspondente
+    li a7, 11         # Código da syscall para imprimir caracter
+    ecall             # Imprime o segundo nibble
+
+    # Avança no loop
+    addi t0, t0, 1    # Avança para o próximo byte
+    j loop            # Repete o loop
+
+end: 		      # Finalizar programa e imprimir '\n'
+    li a0, 10         # Carrega o '\n'
+    li a7, 11         # Código da syscall para imprimir caracter
+    ecall
+    
+    li a7, 10         # Código da syscall para encerrar
+    ecall

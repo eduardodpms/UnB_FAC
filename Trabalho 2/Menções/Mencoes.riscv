@@ -1,0 +1,102 @@
+.data
+sr: .asciz "SR\n"	# Menção SR
+ii: .asciz "II\n"	# Menção II
+mi: .asciz "MI\n"	# Menção MI
+mm: .asciz "MM\n"	# Menção MM
+ms: .asciz "MS\n"	# Menção MS
+ss: .asciz "SS\n"	# Menção SS
+
+.text
+
+.globl main	# Permite referenciar outras funções e arquivos
+
+# Função principal
+main:
+
+	# Leitura do inteiro de entrada
+	li a7, 5	# Carrega 5 no registrador a7 (Chamada de sistema para ler inteiro)
+	ecall		# Chamada do programa
+	mv t0, a0	# Salva o conteúdo de a0 (valor do inteiro) em t0
+	
+	# Verifica a condição para a menção SR
+	li t1, 0		# Carrega o valor 0 no registrador t1
+	beq t0, t1, print_sr	# Verifica se o input é igual a 0 e pula para a função print_sr
+	
+	# Verifica a condição para a menção II
+	li t1, 1		# Carrega o valor 1 no registrador t1
+	bge t0, t1, cond_ii	# Verifica se o input é maior ou igual a 1 e pula para a função cond_ii
+
+cond_ii:
+	li t1, 29		# Carrega o valor 29 no registrador t1
+	ble t0, t1, print_ii	# Verifica se o input é menor ou igual a 29 e pula para a função print_ii
+	
+	# Verifica a condição para a menção MI
+	li t1, 30		# Carrega o valor 30 no registrador t1
+	bge t0, t1, cond_mi	# Verifica se o input é maior ou igual 30 e pula para a função cond_mi
+	
+cond_mi:
+	li t1, 49	# Carrega o valor 49 no registrador t1
+	ble t0, t1, print_mi	# Verifica se o input é menor ou igual a 49 e pula para a função print_mi
+	
+	# Verifica a condição para a menção MM
+	li t1, 50	# Carrega o valor 50 no registrador t1
+	bge t0, t1, cond_mm	# Verifica se o input é maior ou igual 50 e pula para a função cond_mm
+	
+cond_mm:
+	li t1, 69	# Carrega o valor 69 no registrador t1
+	ble t0, t1, print_mm	# Verifica se o input é menor ou igual a 69 e pula para a função print_mm
+	
+	# Verifica a condição para a menção MS
+	li t1, 70		# Carrega o valor 70 no registrador t1
+	bge t0, t1, cond_ms	# Verifica se o input é maior ou igual 70 e pula para a função cond_ms
+	
+cond_ms:
+	li t1, 89		# Carrega o valor 89 no registrador t1
+	ble t0, t1, print_ms	# Verifica se o input é menor ou igual a 89 e pula para a função print_ms
+	
+	# Verifica a condição para a menção SS
+	li t1, 90		# Carrega o valor 90 no registrador t1
+	bge t0, t1, print_ss	# Verifica se o input é maior ou igual 90 e pula para a função cond_ss
+	
+# Adiciona à menção SR
+print_sr:
+	la t1, sr	# Carrega sr no registrador t1
+	j output	# Pula para a função output
+	
+# Adiciona à menção II
+print_ii:
+	la t1, ii	# Carrega ii no registrador t1
+	j output	# Pula para a função output
+	
+# Adiciona à menção MI
+print_mi:
+	la t1, mi	# Carrega mi no registrador t1
+	j output	# Pula para a função output
+	
+# Adiciona à menção MM
+print_mm:
+	la t1, mm	# Carrega mm no registrador t1
+	j output	# Pula para a função output
+	
+# Adiciona à menção MS
+print_ms:
+	la t1, ms	# Carrega ms no registrador t1
+	j output	# Pula para a função output
+	
+# Adiciona à menção SS
+print_ss:
+	la t1, ss	# Carrega ss no registrador t1
+	j output	# Pula para a função output
+	
+# Imprime a menção	
+output:
+	mv a0, t1	# Salva o conteúdo de t1 (enderço do output) em a0
+	li a7, 4	# Carrega 4 no registrador a7 (Chamada de sistema para imprimir string)
+	ecall		# Chamada do programa
+
+# Finaliza o programa	
+exit:
+	li a0, 0	# Carrega 0 no registrador a0 (saída 0, sucesso)
+	li a7, 93	# Carrega 93 no registrador a7 (chamada de sistema para encerra o programa)
+	
+	ecall		# Chamada do programa

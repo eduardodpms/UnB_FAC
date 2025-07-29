@@ -1,0 +1,101 @@
+.data
+
+newline: .asciz "\n"                  # Mensagem de nova linha
+msg_invalidas: .asciz "Entradas invalidas\n"  # Mensagem para as entradas inválidas
+msg_nao_primo: .asciz "O modulo nao eh primo\n"   # Mensagem para um módulo não primo
+msg_inverso: .asciz "inverso = "           # Mensagem para resultado do inverso modular
+
+.text
+
+main:
+
+    # Leitura do primeiro número (módulo)
+    li a7, 5              # Syscall para ler um inteiro
+    ecall
+    mv t0, a0             # Armazena o valor lido em t0 (primeira entrada)
+
+    # Leitura do segundo número
+    li a7, 5              # Syscall para ler outro inteiro
+    ecall
+    mv t1, a0             # Armazena o valor lido em t1 (segunda entrada)
+
+    # Verifica se t0 (módulo) e t1 são maiores que 1
+    li t2, 1              # Define o valor 1 em t2
+    ble t0, t2, print_invalidas  # Se t0 <= 1, salta para mensagem de entradas inválidas
+    ble t1, t2, print_invalidas  # Se t1 <= 1, salta para mensagem de entradas inválidas
+
+    # Verifica se t0 (módulo) é primo
+    li t3, 2              # Inicializa t3 com 2 (menor primo)
+
+primos_loop:
+    mul t4, t3, t3        # t4 = t3 * t3
+    bgt t4, t0, coprimos  # Se t4 > t0, o número é primo; verifica coprimos
+    rem t5, t0, t3        # t5 = t0 % t3
+    beqz t5, print_nao_primos  # Se t5 == 0, t0 não é primo; salta para mensagem
+    addi t3, t3, 1        # Incrementa t3
+    j primos_loop    # Retorna ao início do loop
+
+coprimos:
+    # Verifica se t0 e t1 são coprimos
+    mv t3, t0             # Inicializa t3 com t0
+    mv t4, t1             # Inicializa t4 com t1
+
+loop_coprimos:
+    rem t5, t3, t4        # Calcula t5 = t3 % t4
+    beqz t5, end_loop     # Se t5 == 0, termina o loop (MDC encontrado)
+    mv t3, t4             # Atualiza t3 com t4
+    mv t4, t5             # Atualiza t4 com t5
+    j loop_coprimos        # Retorna ao início do loop
+
+end_loop:
+    beq t4, t2, calcular_inverso  # Se MDC == 1, salta para calcular o inverso
+    j print_invalidas         # Caso contrário, entradas inválidas
+
+calcular_inverso:
+    # Calcula o inverso modular usando tentativa e erro
+    li t3, 1             # Inicializa t3 com 1
+
+loop_inverso:
+    mul t4, t1, t3       # Calcula t4 = t1 * t3
+    rem t5, t4, t0       # Calcula t5 = t4 % t0
+    beq t5, t2, end_inverso  # Se t5 == 1, encontrou o inverso modular
+    addi t3, t3, 1       # Incrementa t3
+    blt t3, t0, loop_inverso  # Continua o loop enquanto t3 < t0
+
+    # Se sair do loop sem encontrar, entradas inválidas
+    j print_invalidas
+
+end_inverso:
+    # Imprime a mensagem "inverso = "
+    la a0, msg_inverso         # Carrega o endereço da mensagem
+    li a7, 4              # Syscall para imprimir string
+    ecall
+
+    # Imprime o valor do inverso modular
+    mv a0, t3             # Move o valor do inverso encontrado para a0
+    li a7, 1              # Syscall para imprimir inteiro
+    ecall
+
+    # Imprime uma nova linha
+    la a0, newline        # Carrega o caractere de nova linha
+    li a7, 4              # Syscall para imprimir string
+    ecall
+
+    li a7, 10             # Syscall para encerrar o programa
+    ecall
+
+print_invalidas:
+    # Imprime mensagem de entradas inválidas
+    la a0, msg_invalidas      # Carrega o endereço da mensagem
+    li a7, 4                      # Syscall para imprimir string
+    ecall
+    li a7, 10                     # Syscall para encerrar o programa
+    ecall
+
+print_nao_primos:
+    # Imprime mensagem que o módulo não é primo
+    la a0, msg_nao_primo          # Carrega o endereço da mensagem
+    li a7, 4                      # Syscall para imprimir string
+    ecall
+    li a7, 10                     # Syscall para encerrar o programa
+    ecall

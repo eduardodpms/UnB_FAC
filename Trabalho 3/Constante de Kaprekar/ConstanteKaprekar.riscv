@@ -1,0 +1,177 @@
+.data
+resultado: .word 6174  # A constante de Kaprekar
+msg_invalid_input: .asciz "entrada invalida.\n" # Mensagem de erro
+newline: .asciz "\n" # Mensagem de linha nova
+
+.text
+.globl main
+
+main:
+    li a7, 5  # Syscall para ler um inteiro
+    ecall
+    mv t0, a0  # Armazena a entrada em t0
+
+    li t1, 1000  # Valor minimo de 4 digitos
+    li t2, 9999  # Valor maximo de 4 digitos
+    blt t0, t1, print_invalid_input  # Se t0 < 1000, print "entrada invalida"
+    bgt t0, t2, print_invalid_input  # Se t0 > 9999, print "entrada invalida"
+
+    lw t1, resultado  # Carrega 6174 para t1
+    beq t0, t1, print_passo  # Se t0 == 6174, imprime passos
+
+    li s0, 0  # Inicializa o contador de passos
+
+kaprekars_loop:
+
+    # Salva o valor original de t0
+    addi sp, sp, -4
+    sw t0, 0(sp)
+
+    # Separacao dos digitos
+    li t1, 10
+
+    rem t2, t0, t1  # Extrai o quarto digito
+    div t0, t0, t1
+    rem t3, t0, t1  # Extrai o terceiro digito
+    div t0, t0, t1
+    rem t4, t0, t1  # Extrai o segundo digito
+    div t0, t0, t1
+    rem t5, t0, t1  # Extrai o primeiro digito
+
+    # Restaura o valor original de t0
+    lw t0, 0(sp)
+    addi sp, sp, 4
+
+    # Verifica se todos os digitos sao iguais
+verif_dig_igual:
+    beq t2, t3, check_t4
+    j crescente
+check_t4:
+    beq t2, t4, check_t5
+    j crescente
+check_t5:
+    beq t2, t5, print_invalid_input
+
+    # Ordena os digitos em ordem crescente
+crescente:
+    li t0, 0  # Inicializa t0
+
+primeiroDigCres:
+    blt t5, t4, passo2Cres
+    mv t6, t5
+    mv t5, t4
+    mv t4, t6
+
+passo2Cres:
+    blt t5, t3, passo3Cres
+    mv t6, t5
+    mv t5, t3
+    mv t3, t6
+
+passo3Cres:
+    blt t5, t2, segundoDigCres
+    mv t6, t5
+    mv t5, t2
+    mv t2, t6
+
+segundoDigCres:
+    blt t4, t3, passo4Cres
+    mv t6, t4
+    mv t4, t3
+    mv t3, t6
+
+passo4Cres:
+    blt t4, t2, terceiroDigCres
+    mv t6, t4
+    mv t4, t2
+    mv t2, t6
+
+terceiroDigCres:
+    blt t3, t2, numero_crescente
+    mv t6, t3
+    mv t3, t2
+    mv t2, t6
+
+numero_crescente:
+    li t0, 0
+    mul t0, t5, t1
+    add t0, t0, t4
+    mul t0, t0, t1
+    add t0, t0, t3
+    mul t0, t0, t1
+    add t0, t0, t2
+
+    # Ordena os digitos em ordem decrescente
+
+primeiroDigDec:
+    bgt t5, t4, passo2Dec
+    mv t6, t5
+    mv t5, t4
+    mv t4, t6
+
+passo2Dec:
+    bgt t5, t3, passo3Dec
+    mv t6, t5
+    mv t5, t3
+    mv t3, t6
+
+passo3Dec:
+    bgt t5, t2, segundoDigDec
+    mv t6, t5
+    mv t5, t2
+    mv t2, t6
+
+segundoDigDec:
+    bgt t4, t3, passo4Dec
+    mv t6, t4
+    mv t4, t3
+    mv t3, t6
+
+passo4Dec:
+    bgt t4, t2, terceiroDigDec
+    mv t6, t4
+    mv t4, t2
+    mv t2, t6
+
+terceiroDigDec:
+    bgt t3, t2, numero_decrescente
+    mv t6, t3
+    mv t3, t2
+    mv t2, t6
+
+numero_decrescente:
+    li t6, 0
+    mul t6, t5, t1
+    add t6, t6, t4
+    mul t6, t6, t1
+    add t6, t6, t3
+    mul t6, t6, t1
+    add t6, t6, t2
+
+    # Subtrai o numero crescente do decrescente e verifica
+subt:
+    sub t0, t6, t0
+    addi s0, s0, 1
+    lw t1, resultado
+    beq t0, t1, print_passo
+    j kaprekars_loop
+
+print_passo:
+    mv a0, s0
+    li a7, 1
+    ecall
+
+    la a0, newline
+    li a7, 4
+    ecall
+
+    li a7, 10
+    ecall
+
+print_invalid_input:
+    la a0, msg_invalid_input
+    li a7, 4
+    ecall
+
+    li a7, 10
+    ecall

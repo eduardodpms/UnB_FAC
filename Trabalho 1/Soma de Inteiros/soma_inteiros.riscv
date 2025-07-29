@@ -1,0 +1,36 @@
+    .data                   # Seção de dados
+msg:    .asciz "\r\n"  # String a ser impressa    
+buffer: .space 4            # Espaço para armazenar o input de cada número
+
+    .text                   # Seção de código
+    .globl  _start          # Define o ponto de entrada
+
+_start:
+    # Ler o primeiro número
+    li      a7, 5           # Código da syscall para leitura de inteiro
+    ecall                   # Chama o sistema
+    mv      t0, a0          # Armazena o primeiro número em t0
+
+    # Ler o segundo número
+    li      a7, 5           # Código da syscall para leitura de inteiro
+    ecall                   # Chama o sistema
+    mv      t1, a0          # Armazena o segundo número em t1
+
+    # Soma os dois números
+    add     t2, t0, t1      # Soma t0 e t1, armazena o resultado em t2
+
+    # Imprime o resultado
+    mv      a0, t2          # Move o resultado da soma para a0
+    li      a7, 1           # Código da syscall para imprimir inteiro
+    ecall                   # Chama o sistema
+    
+    # Prepara os argumentos para a syscall write
+    la      a0, msg         # Carrega o endereço da string na memória para a0
+    li      a1, 2          # Tamanho da string ("\r\n" tem 2 caracteres)
+    li      a7, 4           # Código da syscall write (em RARS é 4)
+
+    ecall                   # Chama o sistema (syscall)
+
+    # Finaliza o programa
+    li      a7, 10          # Código da syscall para sair
+    ecall                   # Chama o sistema

@@ -1,0 +1,70 @@
+.data
+buffer: .space 34    # Reserva espaço para armazenar a string lida (máx. 32 caracteres)
+
+.text
+.globl main
+
+main:
+    li a7, 5         # Código da syscall para leitura de inteiro
+    ecall            # Chama a syscall
+    mv s1, a0        # Armazena o número lido em s1
+    
+    li a7, 8          # Código da syscall para leitura de string
+    la a0, buffer     # Endereço do buffer
+    li a1, 34         # Número máximo de caracteres a serem lidos
+    ecall             # Chama a syscall
+
+    la t0, buffer     # Carrega o endereço do buffer
+    li t1, 26         # Carrega o tamanho do alfabeto
+    rem s1, s1, t1    # Calcula o resto por 26
+    bgez s1, process_loop	# Inicia o loop se for maior que 0
+    add s1, s1, t1    # Se for menor que 0, positiva
+
+process_loop:         # Loop de processamento da string
+    lb t1, 0(t0)      # Carrega um byte (caractere)
+    li, t2, 0x0A      # Carrega o \n
+    beq t1, t2, print # Se for '\n', termina o processamento
+
+    li t2, 0x5A       # ASCII de 'Z'
+    li t3, 0x41       # ASCII de 'A'
+    ble t1, t2, ascii_if  # Se menor que 'Z', pula para o 2° if
+
+    li t2, 0x7A       # ASCII de 'z'
+    li t3, 0x61       # ASCII de 'a'
+    ble t1, t2, ascii_if  # Se menor que 'z', pula para o 2° if
+
+    addi t0, t0, 1    # Avança para o próximo caractere
+    j process_loop    # Continua o loop
+
+ascii_if:             # Função para verificar se o caracter é maior que 'A' ou 'a'
+    bge t1, t3, cifra # Se, além de menor que 'Z' ou 'z', for maior que 'A' ou 'a', inicia a cifra
+    
+    addi t0, t0, 1    # Avança para o próximo caractere
+    j process_loop    # Continua o loop
+
+cifra:
+    add t4, t1, s1    # Armazena em t4 o valor da letra mais o valor da cifra
+    bgt t4, t2, cifra_overflow	# Caso ultrapasse o limite do alfabeto em ascii, pula para outro cálculo
+    sb t4, 0(t0)      # Caso o novo valor seja válido, guarda o byte na string original
+    
+    addi t0, t0, 1    # Avança para o próximo caractere
+    j process_loop    # Continua o loop
+
+cifra_overflow:	      # Função para tratar um "overflow do alfabeto"
+    li t4, 26	      # Armazena o tamanho do alfabeto
+    sub t4, t4, s1    # Calcula a diferença do alfabeto e da cifra
+    sub t4, t1, t4    # Subtrai essa diferença da letra original
+    sb t4, 0(t0)      # Guarda o byte na string original
+    
+    addi t0, t0, 1    # Avança para o próximo caractere
+    j process_loop    # Continua o loop
+
+    
+print:	# Imprime a string cifrada
+    li a7, 4         # Código da syscall para imprimir string
+    la a0, buffer    # Endereço da string processada
+    ecall            # Chama a syscall
+
+exit:	# Finaliza o programa
+    li a7, 10        # Código da syscall para encerrar o programa
+    ecall
